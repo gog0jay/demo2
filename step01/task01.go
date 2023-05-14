@@ -1,16 +1,15 @@
 // read the maze01.txt
 
-package main
+package step01
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 )
 
-var maze []string
+var Maze []string
 
-func loadMaze(file string) error {
+func LoadMaze(file string) error {
 
 	// os.Open读取文件，有两个返回值
 	f, err := os.Open(file)
@@ -27,17 +26,9 @@ func loadMaze(file string) error {
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := scanner.Text()
-		maze = append(maze, line)
+		Maze = append(Maze, line)
 	}
 	return nil
 	// f.Close() is called implicitly
-
-}
-
-func main() {
-	loadMaze("../resources/maze01.txt")
-	for i, v := range maze {
-		fmt.Printf("maze[%d] = %v \n", i, v)
-	}
 
 }
