@@ -240,6 +240,12 @@ func main() {
 		moveGhost()
 
 		// process collisions
+		// process collisions
+		for _, g := range ghosts {
+			if player == *g {
+				lives--
+			}
+		}
 
 		// check game over
 		if input == "ESC" || numDots == 0 || lives <= 0 {

@@ -2,20 +2,41 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"math/rand"
 	"os"
 	"os/exec"
 	"pacgo/utils/simpleansi"
+	"time"
 )
 
+var (
+	configFile = flag.String("config-file", "resources/config.json", "path to custom configuration file")
+	mazeFile   = flag.String("maze-file", "resources/maze01.txt", "path to a custom maze file")
+)
 var maze []string
 
 type sprite struct {
 	row int
 	col int
 }
+
+// Config holds the emoji configuration
+type Config struct {
+	Player   string `json:"player"`
+	Ghost    string `json:"ghost"`
+	Wall     string `json:"wall"`
+	Dot      string `json:"dot"`
+	Pill     string `json:"pill"`
+	Death    string `json:"death"`
+	Space    string `json:"space"`
+	UseEmoji bool   `json:"use_emoji"`
+}
+
+var cfg Config
 
 var player sprite
 
@@ -25,6 +46,20 @@ var score int
 var numDots int
 var lives = 1
 
+func loadConfig(file string) error {
+	f, err := os.Open(file)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	decoder := json.NewDecoder(f)
+	err = decoder.Decode(&cfg)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func loadMaze(file string) error {
 
 	// os.Open读取文件，有两个返回值
@@ -69,25 +104,24 @@ func printScreen() {
 		for _, chr := range line {
 			switch chr {
 			case '#':
-				//fmt.Printf("%c", chr)
-				fallthrough
+				fmt.Print(simpleansi.WithBlueBackground(cfg.Wall))
 			case '.':
-				fmt.Printf("%c", chr)
+				fmt.Print(cfg.Dot)
 			default:
-				fmt.Print(" ")
+				fmt.Print(cfg.Space)
 			}
 		}
 		fmt.Println()
 	}
-	simpleansi.MoveCursor(player.row, player.col)
-	fmt.Print("P")
+	moveCursor(player.row, player.col)
+	fmt.Print(cfg.Player)
 
 	for _, g := range ghosts {
-		simpleansi.MoveCursor(g.row, g.col)
-		fmt.Print("G")
+		moveCursor(g.row, g.col)
+		fmt.Print(cfg.Ghost)
 	}
 
-	simpleansi.MoveCursor(len(maze)+1, 0)
+	moveCursor(len(maze)+1, 0)
 	fmt.Println("Score: ", score, "\tLives: ", lives)
 }
 
@@ -180,14 +214,21 @@ func makeMove(oldRow, oldCol int, dir string) (newRow, newCol int) {
 
 func movePlayer(dir string) {
 	player.row, player.col = makeMove(player.row, player.col, dir)
+
+	// Remove dot from the maze
+	// 不可以使用 maze[player.row][player.col] = " "
+	// 因为maze的类型是[]string ， string是不可变类型
+	removeDot := func(row, col int) {
+		maze[row] = maze[row][0:col] + " " + maze[row][col+1:]
+	}
 	switch maze[player.row][player.col] {
 	case '.':
 		numDots--
 		score++
-		// Remove dot from the maze
-		// 不可以使用 maze[player.row][player.col] = " "
-		// 因为maze的类型是[]string ， string是不可变类型
-		maze[player.row] = maze[player.row][0:player.col] + " " + maze[player.row][player.col+1:]
+		removeDot(player.row, player.col)
+	case 'X':
+		score += 10
+		removeDot(player.row, player.col)
 	}
 }
 
@@ -210,44 +251,91 @@ func moveGhost() {
 	}
 }
 
+func moveCursor(row, col int) {
+	if cfg.UseEmoji {
+		simpleansi.MoveCursor(row, col*2)
+	} else {
+		simpleansi.MoveCursor(row, col)
+	}
+}
 func main() {
+	flag.Parse()
+
 	// initialise game
 	initialise()
 	defer cleanup()
 
 	// load resources
-	err := loadMaze("resources/maze01.txt")
+	err := loadMaze(*mazeFile)
 	if err != nil {
 		log.Println("failed to load maze:", err)
 		return
 	}
 
+	err = loadConfig(*configFile)
+	if err != nil {
+		log.Println("failed to load configuration:", err)
+		return
+	}
+
+	// added in step06
+	input := make(chan string)
+	go func(ch chan<- string) {
+		for {
+			input, err := readInput()
+			if err != nil {
+				log.Println("err reading input: ", err)
+				ch <- "ESC"
+			}
+			ch <- input
+		}
+	}(input)
+
 	// game loop
 	for {
-		// update screen
-		printScreen()
-
-		// process input
-		// 在每次循环中调用ReadInput
-		input, err := readInput()
-		if err != nil {
-			log.Println("error reading input: ", err)
-			break
-		}
-
+		/*	deleted in step06
+			// process input
+			// 在每次循环中调用ReadInput
+			input, err := readInput()
+			if err != nil {
+				log.Println("error reading input: ", err)
+				break
+			}
+		*/
 		// process movement
-		movePlayer(input)
+		select {
+		case inp := <-input:
+			if inp == "ESC" {
+				lives = 0
+			}
+			movePlayer(inp)
+		default:
+
+		}
+		//movePlayer(input)
 		moveGhost()
 
 		// process collisions
+		for _, g := range ghosts {
+			if player == *g {
+				lives--
+			}
+		}
+
+		//update screen
+		printScreen()
 
 		// check game over
-		if input == "ESC" || numDots == 0 || lives <= 0 {
+		if numDots == 0 || lives <= 0 {
+			if lives == 0 {
+				moveCursor(player.row, player.col)
+				fmt.Print(cfg.Death)
+				moveCursor(len(maze)+2, 0)
+			}
 			break
 		}
 
-		// Temp: break infinite loop
-
 		// repeat
+		time.Sleep(200 * time.Millisecond)
 	}
 }

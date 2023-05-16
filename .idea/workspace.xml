@@ -6,10 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="ce7d238d-aa4d-468b-b006-c2d01111e05c" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/simpleansi/simpleansi.go" beforeDir="false" afterPath="$PROJECT_DIR$/utils/simpleansi/simpleansi.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/step05/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/step05/main.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,7 +65,7 @@
       <recent name="$PROJECT_DIR$/utils/simpleansi" />
     </key>
   </component>
-  <component name="RunManager" selected="Go 构建.go build pacgo/test">
+  <component name="RunManager" selected="Go 构建.go build pacgo/step06">
     <configuration name="go build main.go task01.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="pacgo" />
       <working_directory value="$PROJECT_DIR$" />
@@ -95,6 +93,15 @@
       <filePath value="$PROJECT_DIR$/main.go" />
       <method v="2" />
     </configuration>
+    <configuration name="go build pacgo/step06" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+      <module name="pacgo" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="pacgo/step06" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/step06/main.go" />
+      <method v="2" />
+    </configuration>
     <configuration name="go build pacgo/test" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="pacgo" />
       <working_directory value="$PROJECT_DIR$" />
@@ -105,6 +112,7 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Go 构建.go build pacgo/step06" />
       <item itemvalue="Go 构建.go build pacgo/test" />
       <item itemvalue="Go 构建.go build main.go" />
       <item itemvalue="Go 构建.go build main.go task01.go" />
@@ -112,6 +120,7 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Go 构建.go build pacgo/step06" />
         <item itemvalue="Go 构建.go build pacgo/test" />
         <item itemvalue="Go 构建.go build main.go" />
         <item itemvalue="Go 构建.go build pacgo" />
@@ -124,5 +133,16 @@
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/step05/main.go</url>
+          <line>107</line>
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
