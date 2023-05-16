@@ -30,7 +30,7 @@ func loadMaze(file string) error {
 	// os.Open读取文件，有两个返回值
 	f, err := os.Open(file)
 
-	// error handling
+	// error handlingmain
 	if err != nil {
 		return err
 	}
