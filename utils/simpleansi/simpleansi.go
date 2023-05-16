@@ -1,10 +1,23 @@
 package simpleansi
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+	"os"
+	"os/exec"
+)
 
 // ClearScreen cleans the terminal and set cursor position to the top left corner.
 func ClearScreen() {
-	fmt.Print("\x1b[2J")
+
+	cbTerm := exec.Command("clear")
+	cbTerm.Stdout = os.Stdout
+	err := cbTerm.Run()
+	if err != nil {
+		log.Fatalln("unable to clear :", err)
+	}
+
+	//fmt.Print("\x1b[2J")
 	MoveCursor(0, 0)
 }
 
@@ -13,7 +26,7 @@ func ClearScreen() {
 // Please note that ANSI is 1-based and the top left corner is (1,1), but here we are assuming
 // the user is using a zero based coordinate system where the top left corner is (0, 0)
 func MoveCursor(row, col int) {
-	fmt.Printf("\x1b[%d;%df", row+1, col+1)
+	fmt.Printf("\x1b[%d;%df", row, col+1)
 }
 
 const reset = "\x1b[0m"

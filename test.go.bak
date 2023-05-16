@@ -7,10 +7,9 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
-	"pacgo/utils/simpleansi"
-)
 
-var maze []string
+	"github.com/danicat/simpleansi"
+)
 
 type sprite struct {
 	row int
@@ -18,30 +17,22 @@ type sprite struct {
 }
 
 var player sprite
-
 var ghosts []*sprite
+var maze []string
 
 func loadMaze(file string) error {
-
-	// os.Open读取文件，有两个返回值
 	f, err := os.Open(file)
-
-	// error handling
 	if err != nil {
 		return err
 	}
-
-	// put f.Close() in the Call stack
 	defer f.Close()
 
-	// read the file line by line and appends it to the maze slice
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := scanner.Text()
 		maze = append(maze, line)
 	}
 
-	// capture the player position
 	for row, line := range maze {
 		for col, char := range line {
 			switch char {
@@ -49,13 +40,11 @@ func loadMaze(file string) error {
 				player = sprite{row, col}
 			case 'G':
 				ghosts = append(ghosts, &sprite{row, col})
-
 			}
 		}
 	}
-	return nil
-	// f.Close() is called implicitly
 
+	return nil
 }
 
 func printScreen() {
@@ -71,6 +60,7 @@ func printScreen() {
 		}
 		fmt.Println()
 	}
+
 	simpleansi.MoveCursor(player.row, player.col)
 	fmt.Print("P")
 
@@ -79,45 +69,21 @@ func printScreen() {
 		fmt.Print("G")
 	}
 
+	// Move cursor outside of maze drawing area
 	simpleansi.MoveCursor(len(maze)+1, 0)
 }
 
-func initialise() {
-	cbTerm := exec.Command("stty", "cbreak", "-echo")
-	cbTerm.Stdin = os.Stdin
-
-	err := cbTerm.Run()
-	if err != nil {
-		log.Fatalln("unable to activate cbreak mode :", err)
-	}
-}
-
-func cleanup() {
-	cookedTerm := exec.Command("stty", "-cbreak", "echo")
-	cookedTerm.Stdin = os.Stdin
-
-	err := cookedTerm.Run()
-	if err != nil {
-		log.Fatalln("unable to restore cooked mode: ", err)
-	}
-}
-
 func readInput() (string, error) {
-	// 创建一个buffer指针指向一个大小为100的字节切片
 	buffer := make([]byte, 100)
 
-	// os.Stdin.Read() 有两个返回值： 读到的字节数 和 错误值
 	cnt, err := os.Stdin.Read(buffer)
 	if err != nil {
 		return "", err
 	}
 
-	// 只读到了一个字节，且这个字节是退出键 (0x1b表示Esc)
 	if cnt == 1 && buffer[0] == 0x1b {
 		return "ESC", nil
 	} else if cnt >= 3 {
-		// The escape sequence for the arrow keys are 3 bytes long,
-		//starting with ESC+[ and then a letter from A to D.
 		if buffer[0] == 0x1b && buffer[1] == '[' {
 			switch buffer[2] {
 			case 'A':
@@ -128,17 +94,16 @@ func readInput() (string, error) {
 				return "RIGHT", nil
 			case 'D':
 				return "LEFT", nil
-
 			}
 		}
 	}
 
 	return "", nil
-
 }
 
 func makeMove(oldRow, oldCol int, dir string) (newRow, newCol int) {
 	newRow, newCol = oldRow, oldCol
+
 	switch dir {
 	case "UP":
 		newRow = newRow - 1
@@ -160,13 +125,14 @@ func makeMove(oldRow, oldCol int, dir string) (newRow, newCol int) {
 		if newCol < 0 {
 			newCol = len(maze[0]) - 1
 		}
-
 	}
+
 	if maze[newRow][newCol] == '#' {
 		newRow = oldRow
 		newCol = oldCol
 	}
-	return newRow, newCol
+
+	return
 }
 
 func movePlayer(dir string) {
@@ -182,13 +148,32 @@ func drawDirection() string {
 		3: "LEFT",
 	}
 	return move[dir]
-
 }
 
-func moveGhost() {
+func moveGhosts() {
 	for _, g := range ghosts {
 		dir := drawDirection()
 		g.row, g.col = makeMove(g.row, g.col, dir)
+	}
+}
+
+func initialise() {
+	cbTerm := exec.Command("stty", "cbreak", "-echo")
+	cbTerm.Stdin = os.Stdin
+
+	err := cbTerm.Run()
+	if err != nil {
+		log.Fatalln("unable to activate cbreak mode:", err)
+	}
+}
+
+func cleanup() {
+	cookedTerm := exec.Command("stty", "-cbreak", "echo")
+	cookedTerm.Stdin = os.Stdin
+
+	err := cookedTerm.Run()
+	if err != nil {
+		log.Fatalln("unable to activate cooked mode:", err)
 	}
 }
 
@@ -210,16 +195,15 @@ func main() {
 		printScreen()
 
 		// process input
-		// 在每次循环中调用ReadInput
 		input, err := readInput()
 		if err != nil {
-			log.Println("error reading input: ", err)
+			log.Println("error reading input:", err)
 			break
 		}
 
 		// process movement
 		movePlayer(input)
-		moveGhost()
+		moveGhosts()
 
 		// process collisions
 
@@ -227,8 +211,6 @@ func main() {
 		if input == "ESC" {
 			break
 		}
-
-		// Temp: break infinite loop
 
 		// repeat
 	}
